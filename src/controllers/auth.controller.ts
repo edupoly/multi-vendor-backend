@@ -74,7 +74,12 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, role: user.role });
+        res.json({
+          token,
+          role: user.role,
+          name: user.name,
+          email: user.email,
+        });
       },
     );
   } catch (err) {
