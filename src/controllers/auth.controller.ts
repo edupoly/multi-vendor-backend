@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User, {IUser} from '../models/user.model';
+import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User, { IUser } from "../models/user.model";
 
 export const register = async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body;
@@ -9,7 +9,7 @@ export const register = async (req: Request, res: Response) => {
   try {
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      return res.status(400).json({ msg: "User already exists" });
     }
 
     user = new User({
@@ -20,8 +20,8 @@ export const register = async (req: Request, res: Response) => {
     });
 
     const salt = await bcrypt.genSalt(10);
-    if(user.password){
-        user.password = await bcrypt.hash(user.password, salt);
+    if (user.password) {
+      user.password = await bcrypt.hash(user.password, salt);
     }
 
     await user.save();
@@ -39,11 +39,11 @@ export const register = async (req: Request, res: Response) => {
       (err, token) => {
         if (err) throw err;
         res.json({ token });
-      }
+      },
     );
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -53,17 +53,18 @@ export const login = async (req: Request, res: Response) => {
   try {
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password as string);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
     const payload = {
       user: {
         id: user.id,
+        role: user.role,
       },
     };
 
@@ -73,11 +74,11 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
-      }
+        res.json({ token, role: user.role });
+      },
     );
   } catch (err) {
     console.error((err as Error).message);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
