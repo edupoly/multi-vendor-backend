@@ -5,6 +5,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductsByVendorId,
 } from "../controllers/product.controller";
 import { auth, isVendor } from "../middleware/auth.middleware";
 
