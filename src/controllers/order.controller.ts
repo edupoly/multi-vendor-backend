@@ -7,7 +7,7 @@ interface AuthRequest extends Request {
 }
 
 export const createOrder = async (req: AuthRequest, res: Response) => {
-    const { products } = req.body;
+    const { buyerId,products } = req.body;
 
     try {
         let totalPrice = 0;
@@ -26,7 +26,7 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
         );
 
         const newOrder = new Order({
-            buyer: req.user.id,
+            buyerId,
             products: productsWithPrice,
             totalPrice,
         });
