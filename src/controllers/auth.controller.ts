@@ -74,16 +74,85 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
-        res.json({
+
+        const responseData: any = {
           token,
+          id: user._id.toString(),
           role: user.role,
           name: user.name,
           email: user.email,
-        });
+        };
+
+        // 👤 If Buyer → send cart & addresses
+        if (user.role === "buyer") {
+          responseData.cart = user.cart || [];
+          responseData.savedAddresses = user.savedAddresses || [];
+        }
+
+        // 🏪 If Vendor → send stats
+        if (user.role === "vendor") {
+          responseData.products = user.products || 0;
+          responseData.orders = user.orders || 0;
+          responseData.delivered = user.delivered || 0;
+          responseData.pendingDelivery = user.pendingDelivery || 0;
+          responseData.returns = user.returns || 0;
+        }
+        res.json({ ...responseData });
       },
     );
   } catch (err) {
     console.error((err as Error).message);
     res.status(500).send("Server error");
+  }
+};
+
+export const addToCart = async (req: any, res: Response) => {
+  const { userId, productId, quantity } = req.body;
+
+  try {
+    // 1️⃣ Validate productId
+    if (!productId) {
+      return res.status(400).json({ msg: "Product ID is required" });
+    }
+
+    // 2️⃣ Find user
+    const user = await User.findById(userId);
+    console.log("existingItem",user);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // 3️⃣ Only buyers can add to cart
+    if (user.role !== "buyer") {
+      return res.status(403).json({ msg: "Only buyers can add to cart" });
+    }
+
+    // 4️⃣ Initialize cart if undefined
+    if (!user.cart) user.cart = [];
+
+    const qty = quantity && quantity > 0 ? quantity : 1;
+
+    // 5️⃣ Check if product already exists in cart
+    const existingItem = user.cart.find(item => item.product === productId);
+
+    
+    if (existingItem) {
+      existingItem.quantity += qty; // Increment quantity
+    } else {
+      user.cart.push({ product: productId, quantity: qty }); // Add new item
+    }
+
+    // 6️⃣ Save user
+    await user.save();
+
+    // 7️⃣ Respond with updated cart
+    res.json({
+      msg: "Product added to cart",
+      cart: user.cart,
+    });
+
+  } catch (err) {
+    console.error("Add to Cart Error:", err);
+    res.status(500).json({ msg: "Server error", error: err });
   }
 };
