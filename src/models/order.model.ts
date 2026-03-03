@@ -6,6 +6,7 @@ export interface IOrder extends Document {
   buyer: IUser['_id'];
   products: {
     product: IProduct['_id'];
+    vendor: IUser['_id'];
     quantity: number;
   }[];
   totalPrice: number;
@@ -17,6 +18,7 @@ const orderSchema: Schema = new Schema({
   products: [
     {
       product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+      vendor: { type: Schema.Types.ObjectId, ref: 'User', required: true },
       quantity: { type: Number, required: true },
     },
   ],

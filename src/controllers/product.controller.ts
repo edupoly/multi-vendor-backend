@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Product from "../models/product.model";
+import User, { IUser } from "../models/user.model";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -18,6 +19,7 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
     });
 
     const product = await newProduct.save();
+    await User.findByIdAndUpdate(req.user.id, { $inc: { products: 1 } }, { new: true });
     res.json(product);
   } catch (err) {
     console.error((err as Error).message);
@@ -109,6 +111,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     }
 
     await Product.findByIdAndDelete(req.params.id);
+    await User.findByIdAndUpdate(req.user.id, { $inc: { products: -1 } }, { new: true }).where("products").gt(0);
 
     res.json({ msg: "Product removed" });
   } catch (err) {

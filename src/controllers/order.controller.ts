@@ -1,46 +1,48 @@
 import { Request, Response } from 'express';
 import Order from '../models/order.model';
 import Product from '../models/product.model';
+import User, { IUser } from "../models/user.model";
 
 interface AuthRequest extends Request {
     user?: any;
 }
 
 export const createOrder = async (req: AuthRequest, res: Response) => {
-    const { buyerId,products } = req.body;
+    const { products } = req.body;
 
     try {
         let totalPrice = 0;
         const productsWithPrice = await Promise.all(
-            products.map(async (p: { product: string; quantity: number }) => {
-                const product = await Product.findById(p.product);
-                if (!product) {
-                    throw new Error(`Product with id ${p.product} not found`);
-                }
-                if (product.stock < p.quantity) {
-                    throw new Error(`Not enough stock for ${product.name}`);
-                }
-                totalPrice += product.price * p.quantity;
-                return { product: p.product, quantity: p.quantity, price: product.price };
+            products.map(async (p: { product: string;vendor:string; quantity: number }) => {
+                await User.findByIdAndUpdate(p.vendor, { $inc: { orders: 1 } }, { new: true });
+                // const product = await Product.findById(p.product);
+                // if (!product) {
+                //     throw new Error(`Product with id ${p.product} not found`);
+                // }
+                // console.log("product",product)
+                // if (product.stock < p.quantity) {
+                //     throw new Error(`Not enough stock for ${product.name}`);
+                // }
+                // totalPrice += product.price * p.quantity;
+                // return { product: p.product,vendor: p.vendor, quantity: p.quantity, price: product.price };
             })
         );
 
-        const newOrder = new Order({
-            buyerId,
-            products: productsWithPrice,
-            totalPrice,
-        });
+        // const newOrder = new Order({
+        //     buyer: req.user.id,
+        //     products: productsWithPrice,
+        //     totalPrice,
+        // });
 
-        const order = await newOrder.save();
-        
-        // Decrement stock
-        await Promise.all(
-            products.map(async (p: { product: string; quantity: number }) => {
-                await Product.findByIdAndUpdate(p.product, { $inc: { stock: -p.quantity } });
-            })
-        );
+        // const order = await newOrder.save();
+        // // Decrement stock
+        // await Promise.all(
+        //     products.map(async (p: { product: string; quantity: number }) => {
+        //         await Product.findByIdAndUpdate(p.product, { $inc: { stock: -p.quantity } });
+        //     })
+        // );
 
-        res.json(order);
+        res.json("order");
     } catch (err) {
         console.error((err as Error).message);
         res.status(500).send('Server Error');
@@ -87,7 +89,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
         // Check if the vendor owns one of the products in the order
         const products = await Product.find({ vendor: req.user.id });
         const productIds = products.map(p => p._id.toString());
-        
+
         const orderProductIds = order.products.map(p => p.product.toString());
 
         const isVendorInOrder = orderProductIds.some(op => productIds.includes(op));
@@ -95,7 +97,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
         if (!isVendorInOrder) {
             return res.status(401).json({ msg: 'Not authorized' });
         }
-        
+
         const updatedOrder = await Order.findByIdAndUpdate(
             req.params.id,
             { $set: { status } },

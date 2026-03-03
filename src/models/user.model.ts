@@ -15,10 +15,10 @@ export interface IUser extends Document {
   savedAddresses?: {
     fullName: string;
     phone: string;
-    addressLine: string;
+    address: string;
     city: string;
     state: string;
-    postalCode: string;
+    pinCode: string;
     country: string;
   }[];
 
@@ -38,32 +38,37 @@ const userSchema: Schema = new Schema(
     role: { type: String, enum: ['buyer', 'vendor'], required: true },
 
     // Buyer Cart
-    cart: [
-      {
-        product: { type: Schema.Types.ObjectId, ref: 'Product' },
-        quantity: { type: Number, default: 1 },
-      },
-    ],
+    cart: {
+      type: [
+        {
+          product: { type: Schema.Types.ObjectId, ref: 'Product' },
+          quantity: { type: Number, default: 1 },
+        },
+      ],
+      default: undefined, // <-- important
+    },
 
-    // Buyer Saved Addresses
-    savedAddresses: [
-      {
-        fullName: { type: String },
-        phone: { type: String },
-        addressLine: { type: String },
-        city: { type: String },
-        state: { type: String },
-        postalCode: { type: String },
-        country: { type: String },
-      },
-    ],
+    savedAddresses: {
+      type: [
+        {
+          fullName: String,
+          phone: String,
+          address: String,
+          city: String,
+          state: String,
+          pinCode: String,
+          country: String,
+        },
+      ],
+      default: undefined, // <-- important
+    },
 
     // Vendor Stats
-    products: { type: Number, default: 0 },
-    orders: { type: Number, default: 0 },
-    delivered: { type: Number, default: 0 },
-    pendingDelivery: { type: Number, default: 0 },
-    returns: { type: Number, default: 0 },
+    products: { type: Number },
+    orders: { type: Number },
+    delivered: { type: Number },
+    pendingDelivery: { type: Number },
+    returns: { type: Number },
   },
   { timestamps: true }
 );

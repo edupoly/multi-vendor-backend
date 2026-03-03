@@ -24,6 +24,16 @@ export const register = async (req: Request, res: Response) => {
       user.password = await bcrypt.hash(user.password, salt);
     }
 
+    if (role === "vendor") {
+        user.products= 0
+        user.orders= 0
+        user.delivered= 0
+        user.pendingDelivery= 0
+        user.returns= 0
+    }else if(role === "buyer"){
+      user.cart = []
+      user.savedAddresses=[]
+    }
     await user.save();
 
     const payload = {
@@ -91,11 +101,11 @@ export const login = async (req: Request, res: Response) => {
 
         // 🏪 If Vendor → send stats
         if (user.role === "vendor") {
-          responseData.products = user.products || 0;
-          responseData.orders = user.orders || 0;
-          responseData.delivered = user.delivered || 0;
-          responseData.pendingDelivery = user.pendingDelivery || 0;
-          responseData.returns = user.returns || 0;
+          responseData.products = user.products ?? 0;
+          responseData.orders = user.orders ?? 0;
+          responseData.delivered = user.delivered ?? 0;
+          responseData.pendingDelivery = user.pendingDelivery ?? 0;
+          responseData.returns = user.returns ?? 0;
         }
         res.json({ ...responseData });
       },
@@ -117,7 +127,7 @@ export const addToCart = async (req: any, res: Response) => {
 
     // 2️⃣ Find user
     const user = await User.findById(userId);
-    console.log("existingItem",user);
+    console.log("existingItem", user);
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -135,7 +145,7 @@ export const addToCart = async (req: any, res: Response) => {
     // 5️⃣ Check if product already exists in cart
     const existingItem = user.cart.find(item => item.product === productId);
 
-    
+
     if (existingItem) {
       existingItem.quantity += qty; // Increment quantity
     } else {
