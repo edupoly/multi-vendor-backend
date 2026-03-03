@@ -8,8 +8,8 @@ interface AuthRequest extends Request {
 }
 
 export const updateCart = async (req: any, res: Response) => {
-  console.log(req.body);
   const { userId, cartItems } = req.body;
+  console.log(cartItems);
   const user = await User.findByIdAndUpdate(userId, {
     $set: { cart: [...cartItems] },
   });
@@ -24,9 +24,14 @@ export const createOrder = async (req: any, res: Response) => {
   user?.cart?.forEach(async (item: any) => {
     const order = new Order({
       buyer: user?._id,
-      product: item._id,
-      quantity: item.quantity,
       status: "pending",
+      productId: item._id,
+      quantity: item.quantity,
+      vendorId: item.vendor,
+      price: item.price,
+      name: item.name,
+      description: item.description,
+      image: item.image,
     });
     await order.save();
     await Product.findByIdAndUpdate(item._id, {
@@ -38,53 +43,6 @@ export const createOrder = async (req: any, res: Response) => {
   });
   res.send({ msg: "Cart updated" });
 };
-
-// export const createOrder = async (req: AuthRequest, res: Response) => {
-//   const { buyerId, products } = req.body;
-//   console.log("Creating order:", { buyerId, products });
-//   try {
-//     let totalPrice = 0;
-//     const productsWithPrice = await Promise.all(
-//       products.map(async (p) => {
-//         const product = await Product.findById(p._id);
-//         if (!product) {
-//           throw new Error(`Product with id ${p._id} not found`);
-//         }
-//         if (product.stock < p.quantity) {
-//           throw new Error(`Not enough stock for ${product.name}`);
-//         }
-//         totalPrice += product.price * p.quantity;
-//         return {
-//           product: p.product,
-//           quantity: p.quantity,
-//           price: product.price,
-//         };
-//       }),
-//     );
-
-//     const newOrder = new Order({
-//       buyerId,
-//       products: productsWithPrice,
-//       totalPrice,
-//     });
-
-//     const order = await newOrder.save();
-
-//     // Decrement stock
-//     await Promise.all(
-//       products.map(async (p: { product: string; quantity: number }) => {
-//         await Product.findByIdAndUpdate(p.product, {
-//           $inc: { stock: -p.quantity },
-//         });
-//       }),
-//     );
-
-//     res.json(order);
-//   } catch (err) {
-//     console.error((err as Error).message);
-//     res.status(500).send("Server Error");
-//   }
-// };
 
 export const getMyOrders = async (req: AuthRequest, res: Response) => {
   try {
@@ -99,23 +57,16 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// export const getVendorOrders = async (req: AuthRequest, res: Response) => {
-//   try {
-//     // Find products belonging to the vendor
-//     const products = await Product.find({ vendor: req.user.id });
-//     const productIds = products.map((p) => p._id);
-
-//     // Find orders containing those products
-//     const orders = await Order.find({ "products.product": { $in: productIds } })
-//       .populate("buyer", "name email")
-//       .populate("products.product", "name price");
-
-//     res.json(orders);
-//   } catch (err) {
-//     console.error((err as Error).message);
-//     res.status(500).send("Server Error");
-//   }
-// };
+export const getVendorOrders = async (req: AuthRequest, res: Response) => {
+  try {
+    console.log(req.user.id);
+    const orders = await Order.find({ vendorId: req.user.id });
+    res.json(orders);
+  } catch (err) {
+    console.error((err as Error).message);
+    res.status(500).send("Server Error");
+  }
+};
 
 // export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
 //   const { status } = req.body;

@@ -1,4 +1,9 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
+import { IProduct } from "./product.model";
+
+export interface ICartItem extends Document, IProduct {
+  quantity: number;
+}
 
 export interface IUser extends Document {
   name: string;
@@ -7,11 +12,7 @@ export interface IUser extends Document {
   role: "buyer" | "vendor";
 
   // Buyer
-  cart?: {
-    product: Types.ObjectId;
-    quantity: number;
-    date: Date;
-  }[];
+  cart?: ICartItem[];
 
   savedAddresses?: {
     fullName: string;
@@ -41,7 +42,17 @@ const userSchema: Schema = new Schema(
     // Buyer Cart
     cart: [
       {
-        product: { type: Schema.Types.ObjectId, ref: "Product" },
+        productId: {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        name: { type: String, required: true },
+        description: { type: String, required: true },
+        price: { type: Number, required: true },
+        vendor: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        stock: { type: Number, required: true, default: 0 },
+        image: { type: String, required: true },
         quantity: { type: Number, default: 1 },
       },
     ],
