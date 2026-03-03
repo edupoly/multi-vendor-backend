@@ -28,7 +28,11 @@ export const register = async (req: Request, res: Response) => {
         user.products= 0
         user.orders= 0
         user.delivered= 0
-        user.pendingDelivery= 0
+        user.pendingOrder= 0
+        user.processingOrders= 0
+        user.shippedOrders= 0
+        user.cancelledOrders= 0
+        user.totalRevenue= 0
         user.returns= 0
     }else if(role === "buyer"){
       user.cart = []
@@ -104,7 +108,11 @@ export const login = async (req: Request, res: Response) => {
           responseData.products = user.products ?? 0;
           responseData.orders = user.orders ?? 0;
           responseData.delivered = user.delivered ?? 0;
-          responseData.pendingDelivery = user.pendingDelivery ?? 0;
+          responseData.pendingOrder = user.pendingOrder ?? 0;
+          responseData.processingOrders = user.processingOrders ?? 0;
+          responseData.shippedOrders = user.shippedOrders ?? 0;
+          responseData.cancelledOrders = user.cancelledOrders ?? 0;
+          responseData.totalRevenue = user.totalRevenue ?? 0;
           responseData.returns = user.returns ?? 0;
         }
         res.json({ ...responseData });

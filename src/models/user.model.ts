@@ -26,7 +26,11 @@ export interface IUser extends Document {
   products?: number;
   orders?: number;
   delivered?: number;
-  pendingDelivery?: number;
+  pendingOrder?: number;
+  processingOrders?: number;
+  shippedOrders?: number;
+  cancelledOrders?: number;
+  totalRevenue?: number;
   returns?: number;
 }
 
@@ -67,7 +71,11 @@ const userSchema: Schema = new Schema(
     products: { type: Number },
     orders: { type: Number },
     delivered: { type: Number },
-    pendingDelivery: { type: Number },
+    pendingOrder: { type: Number },
+    processingOrders: { type: Number },
+    shippedOrders: { type: Number },
+    cancelledOrders: { type: Number },
+    totalRevenue: { type: Number },
     returns: { type: Number },
   },
   { timestamps: true }
