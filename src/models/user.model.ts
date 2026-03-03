@@ -1,15 +1,16 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: 'buyer' | 'vendor';
+  role: "buyer" | "vendor";
 
   // Buyer
   cart?: {
     product: Types.ObjectId;
     quantity: number;
+    date: Date;
   }[];
 
   savedAddresses?: {
@@ -35,12 +36,12 @@ const userSchema: Schema = new Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['buyer', 'vendor'], required: true },
+    role: { type: String, enum: ["buyer", "vendor"], required: true },
 
     // Buyer Cart
     cart: [
       {
-        product: { type: Schema.Types.ObjectId, ref: 'Product' },
+        product: { type: Schema.Types.ObjectId, ref: "Product" },
         quantity: { type: Number, default: 1 },
       },
     ],
@@ -65,7 +66,7 @@ const userSchema: Schema = new Schema(
     pendingDelivery: { type: Number, default: 0 },
     returns: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.model<IUser>('User', userSchema);
+export default mongoose.model<IUser>("User", userSchema);
